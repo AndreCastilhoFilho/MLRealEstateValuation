@@ -20,39 +20,34 @@ namespace MlNetRealState.App
         /// <param name="numberOfTrees">Number of trees for the FastTree trainer.</param>
         /// <param name="learningRate">Learning rate for the FastTree trainer.</param>
         /// <returns>A configured estimator pipeline.</returns>
-        private IEstimator<ITransformer> CreatePipeline(int numberOfTrees = 500, double learningRate = 0.01)
+        private IEstimator<ITransformer> CreatePipeline(int numberOfTrees = 700, double learningRate = 0.02)
         {
-            // Preprocessing steps: 
-            // - Replace missing values for numeric columns.
-            // - Concatenate features (excluding Location).
-            // - Normalize the feature vector.
-            // - Copy the Price column to Label.
-
             var dataProcessPipeline = MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.Rooms), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean)
-                                       .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.Bathrooms), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
-                                       .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.SquareMeters), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
-                                       .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.YearBuilt), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
-                                         .Append(MlContext.Transforms.Concatenate("Features",
-                                            nameof(RealEstateData.Rooms),
-                                            nameof(RealEstateData.Bathrooms),
-                                            nameof(RealEstateData.SquareMeters),
-                                            nameof(RealEstateData.YearBuilt)))
-                                                 .Append(MlContext.Transforms.NormalizeMeanVariance("Features"))
-                                                 .Append(MlContext.Transforms.CopyColumns("RawLabel", nameof(RealEstateData.Price)))
-                                                .Append(MlContext.Transforms.NormalizeLogMeanVariance("RawLabel"))
-                                                .Append(MlContext.Transforms.CopyColumns("Label", "RawLabel"));
+                .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.Bathrooms), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
+                .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.SquareMeters), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
+                .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.YearBuilt), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
+                .Append(MlContext.Transforms.Concatenate("Features",
+                    nameof(RealEstateData.Rooms),
+                    nameof(RealEstateData.Bathrooms),
+                    nameof(RealEstateData.SquareMeters),
+                    nameof(RealEstateData.YearBuilt)))
+                .Append(MlContext.Transforms.NormalizeMeanVariance("Features"))
 
-            // Append the FastTree trainer for regression
+                // 🔥 Apply log transformation to Label (Price)
+                .Append(MlContext.Transforms.CustomMapping<RealEstateData, TransformedRealEstateData>(
+                    (input, output) => { output.Label = (float)Math.Log(input.Price); }, contractName: "LogTransform"));
+
             var trainer = MlContext.Regression.Trainers.FastTree(
                 labelColumnName: "Label",
                 featureColumnName: "Features",
-                numberOfLeaves: 30,
-                minimumExampleCountPerLeaf: 20,
+                numberOfLeaves: 50,
+                minimumExampleCountPerLeaf: 5,
                 numberOfTrees: numberOfTrees,
                 learningRate: learningRate);
 
             return dataProcessPipeline.Append(trainer);
         }
+
 
 
         /// <summary>
@@ -103,9 +98,10 @@ namespace MlNetRealState.App
         {
             var predictionEngine = MlContext.Model.CreatePredictionEngine<RealEstateData, RealEstatePrediction>(model);
             var prediction = predictionEngine.Predict(inputData);
+
+            // 🔥 Reverse the log transformation (convert log(price) back to normal scale)
             return (float)Math.Exp(prediction.Price);
         }
-
 
         /// <summary>
         /// Performs 5-fold cross-validation on the dataset.

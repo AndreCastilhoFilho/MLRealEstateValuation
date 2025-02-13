@@ -12,4 +12,10 @@ namespace MlNetRealState.App
         [LoadColumn(5)] public float Price { get; set; }
     }
 
+    public class TransformedRealEstateData
+    {
+        public float Label { get; set; } // This will store log(Price)
+    }
+
+
 }

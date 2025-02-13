@@ -55,13 +55,26 @@ namespace MlNetRealState.Tests
         {
             var (model, testData) = _realEstateModel.TrainModelWithSplit(_dataPath);
             var predictions = model.Transform(testData);
+
+            // Extract actual prices
+            var actualPrices = testData.GetColumn<float>("Price").ToArray();
+
+            //  Reverse log transformation on predicted values
+            var predictedPrices = predictions.GetColumn<float>("Score")
+                .Select(p => (float)Math.Exp(p)) // Convert back to normal price scale
+                .ToArray();
+
             var metrics = _realEstateModel.MlContext.Regression.Evaluate(predictions, labelColumnName: "Label");
 
             Console.WriteLine($"Test RMSE: {metrics.RootMeanSquaredError}");
-            //Assert.True(metrics.RootMeanSquaredError < 100000, "Test RMSE should be below 100,000.");
 
-            PlotActualVsPredicted(model, testData);
+            // Recalculate RMSE after applying exp()
+            double adjustedRMSE = Math.Sqrt(actualPrices.Zip(predictedPrices, (actual, pred) => Math.Pow(actual - pred, 2)).Average());
+            Console.WriteLine($"Adjusted RMSE (after exp transform): {adjustedRMSE}");
+
+            PlotActualVsPredicted(actualPrices, predictedPrices);
         }
+
 
         [Fact]
         public void Model_ShouldIdentifyImportantFeatures()
@@ -107,7 +120,7 @@ namespace MlNetRealState.Tests
             // Ensure that test RMSE is not significantly worse than training RMSE
             Assert.True(testMetrics.RootMeanSquaredError < trainMetrics.RootMeanSquaredError * 1.5,
                 "Test RMSE should not be significantly higher than training RMSE (overfitting check).");
-        }       
+        }
         [Fact]
         public void Model_ShouldConverge()
         {
@@ -199,6 +212,30 @@ namespace MlNetRealState.Tests
             {
                 Console.WriteLine($"Could not open plot: {ex.Message}");
             }
+        }
+
+        public void PlotActualVsPredicted(float[] actualPrices, float[] predictedPrices)
+        {
+            var plt = new ScottPlot.Plot();
+            plt.Add.Scatter(actualPrices, predictedPrices).LegendText = "Predicted vs. Actual";
+            plt.Add.Line(0, 0, actualPrices.Max(), actualPrices.Max()).LegendText = "Perfect Prediction (y = x)";
+            plt.Title("Actual vs. Predicted Prices");
+            plt.XLabel("Actual Price");
+            plt.YLabel("Predicted Price");
+            plt.Legend.IsVisible = true;
+
+            string filePath = "actual_vs_predicted.png";
+            plt.SavePng(filePath, 600, 400);
+            Console.WriteLine($"Plot saved as {filePath}");
+            try
+            {
+                Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not open plot: {ex.Message}");
+            }
+
         }
     }
 }
