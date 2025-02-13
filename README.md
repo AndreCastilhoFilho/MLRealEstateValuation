@@ -42,28 +42,6 @@ The project includes **actual vs. predicted plots** and **convergence plots** to
 ### **Example: Model Convergence**
 ![Convergence Plot](docs/convergence_plot.png)
 
-## 🛠 How to Run the Project
-1️⃣ **Clone the Repository:**
-```sh
-git clone https://github.com/your-username/ml-net-real-estate.git
-cd ml-net-real-estate
-```
-
-2️⃣ **Install Dependencies:**
-```sh
-dotnet restore
-```
-
-3️⃣ **Run Unit Tests:**
-```sh
-dotnet test
-```
-
-4️⃣ **Train & Evaluate Model:**
-```sh
-dotnet run
-```
-
 ## 🎯 Future Improvements
 - Implement **Neural Network Regressor (ML.NET DNN Trainer)**.
 - Experiment with **different regression models**.
