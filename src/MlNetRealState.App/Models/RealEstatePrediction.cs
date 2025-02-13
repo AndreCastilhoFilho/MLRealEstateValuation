@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Data;
 
-namespace MlNetRealState.App
+namespace MlNetRealState.App.Models
 {
     public class RealEstatePrediction
     {

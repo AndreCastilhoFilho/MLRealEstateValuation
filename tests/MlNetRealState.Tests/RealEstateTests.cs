@@ -1,6 +1,7 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using MlNetRealState.App;
+using MlNetRealState.App.Models;
 using System.Diagnostics;
 
 namespace MlNetRealState.Tests

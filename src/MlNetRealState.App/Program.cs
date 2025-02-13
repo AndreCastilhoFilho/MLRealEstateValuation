@@ -1,4 +1,5 @@
 ﻿using MlNetRealState.App;
+using MlNetRealState.App.Models;
 
 class Program
 {

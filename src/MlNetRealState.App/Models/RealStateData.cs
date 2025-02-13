@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Data;
 
-namespace MlNetRealState.App
+namespace MlNetRealState.App.Models
 {
     public class RealEstateData
     {
@@ -11,11 +11,5 @@ namespace MlNetRealState.App
         [LoadColumn(4)] public float YearBuilt { get; set; }
         [LoadColumn(5)] public float Price { get; set; }
     }
-
-    public class TransformedRealEstateData
-    {
-        public float Label { get; set; } // This will store log(Price)
-    }
-
 
 }

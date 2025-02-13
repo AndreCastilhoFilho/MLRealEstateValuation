@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 using Microsoft.ML.Transforms;
-using SkiaSharp;
+using MlNetRealState.App.Models;
 
 namespace MlNetRealState.App
 {
@@ -33,7 +33,7 @@ namespace MlNetRealState.App
                     nameof(RealEstateData.YearBuilt)))
                 .Append(MlContext.Transforms.NormalizeMeanVariance("Features"))
 
-                // 🔥 Apply log transformation to Label (Price)
+                //Apply log transformation to Label (Price)
                 .Append(MlContext.Transforms.CustomMapping<RealEstateData, TransformedRealEstateData>(
                     (input, output) => { output.Label = (float)Math.Log(input.Price); }, contractName: "LogTransform"));
 
@@ -47,8 +47,6 @@ namespace MlNetRealState.App
 
             return dataProcessPipeline.Append(trainer);
         }
-
-
 
         /// <summary>
         /// Loads the real estate data from a CSV file.
@@ -99,7 +97,7 @@ namespace MlNetRealState.App
             var predictionEngine = MlContext.Model.CreatePredictionEngine<RealEstateData, RealEstatePrediction>(model);
             var prediction = predictionEngine.Predict(inputData);
 
-            // 🔥 Reverse the log transformation (convert log(price) back to normal scale)
+            // Reverse the log transformation (convert log(price) back to normal scale)
             return (float)Math.Exp(prediction.Price);
         }
 
