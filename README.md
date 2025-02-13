@@ -42,15 +42,6 @@ The project includes **actual vs. predicted plots** and **convergence plots** to
 ### **Example: Model Convergence**
 ![Convergence Plot](docs/convergence_plot.png)
 
-## 🏗 Project Structure
-```
-📂 MlNetRealState
-│── 📂 MlNetRealState.App (ML Model & Business Logic)
-│── 📂 MlNetRealState.Tests (Unit Tests)
-│── 📄 README.md (Project Documentation)
-│── 📄 real_estate_data.csv (Dataset)
-```
-
 ## 🛠 How to Run the Project
 1️⃣ **Clone the Repository:**
 ```sh
