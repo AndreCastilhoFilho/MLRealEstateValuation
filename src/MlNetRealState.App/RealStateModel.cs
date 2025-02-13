@@ -20,7 +20,7 @@ namespace MlNetRealState.App
         /// <param name="numberOfTrees">Number of trees for the FastTree trainer.</param>
         /// <param name="learningRate">Learning rate for the FastTree trainer.</param>
         /// <returns>A configured estimator pipeline.</returns>
-        private IEstimator<ITransformer> CreatePipeline(int numberOfTrees = 700, double learningRate = 0.02)
+        public IEstimator<ITransformer> CreatePipeline(int numberOfTrees = 700, double learningRate = 0.02)
         {
             var dataProcessPipeline = MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.Rooms), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean)
                 .Append(MlContext.Transforms.ReplaceMissingValues(nameof(RealEstateData.Bathrooms), replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))

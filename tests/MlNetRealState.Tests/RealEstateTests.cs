@@ -104,23 +104,27 @@ namespace MlNetRealState.Tests
         {
             var (model, testData) = _realEstateModel.TrainModelWithSplit(_dataPath);
 
-            // Load the original dataset for training evaluation
+            // Use Cross-Validation to Evaluate Training RMSE
             var trainData = _realEstateModel.LoadData(_dataPath);
+            var cvResults = _realEstateModel.MlContext.Regression.CrossValidate(
+                trainData,
+                _realEstateModel.CreatePipeline(),
+                numberOfFolds: 5);
 
-            // Evaluate on training data
-            var trainPredictions = model.Transform(trainData);
-            var trainMetrics = _realEstateModel.MlContext.Regression.Evaluate(trainPredictions, labelColumnName: "Label");
-            Console.WriteLine($"Training RMSE: {trainMetrics.RootMeanSquaredError}");
+            double trainRMSE = cvResults.Average(r => r.Metrics.RootMeanSquaredError);
+            Console.WriteLine($"Cross-Validated Training RMSE: {trainRMSE}");
 
-            // Evaluate on test data
+            // Evaluate on Test Data
             var testPredictions = model.Transform(testData);
             var testMetrics = _realEstateModel.MlContext.Regression.Evaluate(testPredictions, labelColumnName: "Label");
             Console.WriteLine($"Test RMSE: {testMetrics.RootMeanSquaredError}");
 
-            // Ensure that test RMSE is not significantly worse than training RMSE
-            Assert.True(testMetrics.RootMeanSquaredError < trainMetrics.RootMeanSquaredError * 1.5,
+            // Ensure test RMSE is not significantly worse than training RMSE
+            Assert.True(testMetrics.RootMeanSquaredError < trainRMSE * 1.5,
                 "Test RMSE should not be significantly higher than training RMSE (overfitting check).");
         }
+
+
         [Fact]
         public void Model_ShouldConverge()
         {
